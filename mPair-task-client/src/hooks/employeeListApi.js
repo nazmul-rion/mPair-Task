@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 import { useState } from "react"
 
-const EmployeeListApi = () => {
-    const [employees, setemployees] = useState([]);
+const EmployeeListApi = (jobTitle) => {
+    const [employees, setEmployees] = useState([]);
     useEffect(() => {
-        fetch('http://localhost:7000/allemployee')
+        fetch(`https://mpair-server.onrender.com/allemployee/?jobTitle=${jobTitle}`)
             .then(res => res.json())
-            .then(data => setemployees(data));
-    }, [employees]);
-    return [employees, setemployees];
+            .then(data => setEmployees(data));
+
+    }, [employees, jobTitle]);
+    return [employees, setEmployees];
 }
 
 export default EmployeeListApi;

@@ -5,6 +5,12 @@ import Homepage from './Pages/HomePage/HomePage';
 import Login from './Pages/Login/Login';
 import Register from './Pages/Register/Register';
 import Dashboard from './Pages/Dashboard/Dashboard';
+import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
+import NavigationBar from './Pages/Section/NavigationBar';
+import SalaryManagement from './Pages/SalaryManagement/SalaryManagement';
+import AuthProvider from './context/AuthProvider';
+import AdminRoute from './Routes/AdminRoute';
+import PrivateRoute from './Routes/PrivateRoute';
 
 function App() {
   return (
@@ -12,20 +18,26 @@ function App() {
 
       <BrowserRouter>
 
-        <Routes>
-          <Route exact path="/" element={<Homepage />} />
+        <AuthProvider >
 
-          <Route path="/home" element={<Homepage />} />
+          <Routes>
 
+            <Route exact path="/" element={<><NavigationBar /><Homepage /></>} />
 
-          <Route path="/signin" element={<Login />} />
+            <Route path="/home" element={<><NavigationBar /><Homepage /></>} />
 
-          <Route path="/signup" element={<Register />} />
+            <Route path="/login" element={<><NavigationBar /><Login /></>} />
 
+            <Route path="/register" element={<><NavigationBar /><Register /></>} />
 
-          <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<><PrivateRoute><NavigationBar /><Dashboard /></PrivateRoute></>} />
+            <Route path="/salary-management" element={<><AdminRoute><NavigationBar /><SalaryManagement /></AdminRoute></>} />
 
-        </Routes>
+            <Route path="*" element={<><NavigationBar /><NotFoundPage /></>} />
+
+          </Routes>
+
+        </AuthProvider >
 
       </BrowserRouter >
 

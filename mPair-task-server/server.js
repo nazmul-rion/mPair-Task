@@ -27,18 +27,14 @@ async function run() {
         // Get all employeeList 
         app.get("/allemployee", async (req, res) => {
 
-            const cursor = employeeColection.find({});
-            const employees = await cursor.toArray();
-            res.send(employees);
-        });
-
-        // Get all employeeList by departmentName
-        app.get("/allemployee/:departmentName", async (req, res) => {
-            const departmentName = req.params.departmentName;
-
-            const query = {
-                department: departmentName
-            };
+            const jobTitle = req.query.jobTitle;
+            let query = {};
+            if (jobTitle)
+                if (jobTitle == "all")
+                    query = {};
+                else query = {
+                    job_title: jobTitle
+                };
             const cursor = employeeColection.find(query);
             const employees = await cursor.toArray();
             res.send(employees);
@@ -48,18 +44,39 @@ async function run() {
         // Check Admin 
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
-            const query = { UserEmail: email };
+            const query = { email: email };
             const user = await employeeInformation.findOne(query);
             let isAdmin = "";
-            if (user?.Role === 'admin') {
+            if (user?.role === 'admin') {
                 isAdmin = "admin";
             }
-            else if (user?.Role === 'employee') {
+            else if (user?.role === 'employee') {
                 isAdmin = "employee";
             }
-            res.json({ admin: isAdmin });
+            res.json({ isAdmin: isAdmin });
         })
 
+        // UPSERT User API
+        app.post('/add-employee', async (req, res) => {
+            try {
+                const { email } = req.body;
+                let employee = req.body;
+                employee.salary = parseFloat(employee.salary);
+
+                // Check if employee already exists
+                const existing = await employeeColection.findOne({ email });
+                if (existing) {
+                    return res.status(400).json({ message: 'Employee Already Exists' });
+                }
+                else {
+                    const result = await employeeColection.insertOne(employee);
+                    res.json(result);
+                }
+
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
 
         // UPSERT User API
         app.post('/adduser', async (req, res) => {
@@ -113,17 +130,25 @@ async function run() {
         });
 
         // UPSERT Salary API
-        app.put('/update-salary/:departmentName', async (req, res) => {
-            const departmentName = req.params.departmentName;
-            const filter = { departmentName: departmentName };
-            const options = { upsert: true };
+        app.put('/update-salary', async (req, res) => {
+            const { percent, jobTitle } = req.body;
+            let increasePercent = 1 + (percent / 100);
+            let filter = {};
+            if (jobTitle == "all")
+                filter = {};
+            else
+                filter = { job_title: jobTitle };
             const updateDoc = {
-                $set: {
-                    departmentName: departmentName
-                }
+                $mul: { salary: increasePercent }
+
             };
-            const result = await employeeColection.updateMany(filter, updateDoc, options);
+            const result = await employeeColection.updateMany(filter, updateDoc);
             res.json(result);
+
+
+
+
+
         });
 
     }
@@ -136,7 +161,7 @@ run().catch(console.dir);
 
 app.get('/', (req, res) => {
 
-    res.send("server is running");
+    res.send("Welcome to mPair Server");
 
 });
 
